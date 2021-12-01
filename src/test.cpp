@@ -1,7 +1,7 @@
 #include <iostream>
 
 #define P(x) std::cout << x << std::endl
-
+/*
 class X {
    public:
       std::string name;
@@ -51,14 +51,7 @@ class X {
    private:
       int* x = new int;
 };
-
+*/
 int main (int argc, char** argv){
-   X num1("num1", 123);
-   X num2("num2", 456);
-   P("1. " << num1);
-   P("2. " << num2);
-   num1 = num1 + num2;
-   P("3. " << num1);
-   P("4. " << num2);
    return 0;
 }

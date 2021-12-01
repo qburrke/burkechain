@@ -30,9 +30,9 @@ namespace big {
             */
             uint256_t(const char* s, int len) {
                 if (len > 64){ this->_error(0); }
-                for (byte_index = 0; byte_index < len; byte_index++) {
+                for (int i = 0; i < len; i++) {
                     *data <<= 4;
-                    switch(s[byte_index]){
+                    switch(s[i]){
                         case '0': *data|=0x0; break;
                         case '1': *data|=0x1; break;
                         case '2': *data|=0x2; break;
@@ -55,13 +55,25 @@ namespace big {
             }
             // declare class deconstructor
             ~uint256_t(){ delete data; }
+            
+            void clear(){ (*this->data).reset(); }
+
+            bool empty(){ return this->empty; }
 
             // little func for printing the binary of the uint256_t, might comment out this
             void print_bin(){ PRINT(*data); }
 
             // define << operator for this class so we can print through std::cout
             friend std::ostream& operator<<(std::ostream& os, const uint256_t& num){
-                os << "0x" << std::hex << num.data->to_ulong();
+                os << "0x";
+                std::bitset<4> hex_char;
+                for (int i = 255; i > -1; i-=4){
+                    for (int j = 0; j < 4; j++){
+                        hex_char[3 - j] = (*num.data)[i - j];
+                    }
+                    os << std::hex << hex_char.to_ulong();
+                    hex_char.reset();
+                }
                 return os;
             }
             
@@ -69,35 +81,74 @@ namespace big {
                 /* 
                 Please note the num's destructor will be called
                 once we exit this scope, which is why we copy 
-                the data in num and not move (move is alot faster
-                than copying). Im commenting this because It took me 
-                AWHILE to figure this out omg I finally did it and I didnt 
-                need stackoverflow or any help.
+                the data in num and not move 
+                (moving data is faster than copying data, but we cant more here).
                 */
                 *this->data = *num.data;
             }
 
             uint256_t operator+(const uint256_t& num){
-                uint256_t temp(*this);
-                *temp.data = temp.data->to_ulong() + num.data->to_ulong();
-                // PRINT("[OP+] " << temp.data->to_ulong());
-                // PRINT("[OP+] " << num.data->to_ulong());
-                // PRINT("[OP+] " << temp);
+                uint256_t temp;
+                char a = 0, b = 0, carry = 0;
+                for (int i = 0; i < 256; i++){
+                    a = (*this->data)[i];
+                    b = (*num.data)[i];
+                    if (carry && a && b){
+                        (*temp.data)[i] = 1;
+                    }
+                    else if (carry && (a || b)){
+                        (*temp.data)[i] = 0;
+                    }
+                    else if (!carry && a && b){
+                        (*temp.data)[i] = 0;
+                        carry = 1;
+                    }
+                    else if (!carry && (a || b)){
+                        (*temp.data)[i] = 1;
+                    }
+                    else if(carry && !(a || b)){
+                        (*temp.data)[i] = 1;
+                        carry = 0;
+                    }
+                    else {
+                        (*temp.data)[i] = 0;
+                        carry = 0;    
+                    }
+                }
+                if (carry) { this->_error(2); }
                 return temp;
             }
 
+            uint256_t operator+=(const uint256_t& num){
+                uint256_t temp = *this + num; 
+                return temp;
+            }
+            
+            uint256_t operator-(const uint256_t& num){
+                uint256_t temp;
+                return temp;
+            }
+
+            uint256_t operator-=(const uint256_t& num){
+                uint256_t temp = *this - num;
+                return temp;
+            }
         private:
             std::bitset<256>* data = new std::bitset<256>;
-            int byte_index;
+            bool infinity = false;
+            bool empty = false;
             void _error(int e){
                 this->~uint256_t();
                 switch(e){ 
-                    case 0: ERROR("Error, hex provied exceeds __uint256_t limit");
-                    case 1: ERROR("Invaild hex to __uint256_t assignment");
+                    case 0: ERROR("Error, hex provied exceeds uint256_t limit");
+                    case 1: ERROR("Invaild hex to uint256_t assignment");
                     case 2: ERROR("Overflow error while adding two uint256_t objects");
-                    default:ERROR("unknown error occured while creating __uint256_t");
+                    case 3: ERROR("Error, attempting to do math with infinity point");
+                    default:ERROR("unknown error occured while creating uint256_t");
                 }
             }
     };
+    
+    uint256_t* pow(const uint256_t& a, const uint256_t& b, const uint256_t& c);
 }
 #endif
