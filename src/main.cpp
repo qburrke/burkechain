@@ -7,9 +7,19 @@ int main(int argc, char **argv) {
 	blc::blockchain b("start");
 	b.print_chain();
 	*/
-	uint256_t* a = new uint256_t("ca978112ca1bbdcafac231b39a23dc4da786eff8147c4e72b9807785afee48bb", 64);
-    std::cout << *a << std::endl;
-    a->print_bin();
-    delete a;
+	uint256_t* a = new uint256_t("ffffffffffffffffffff", 20);
+    uint256_t* b = new uint256_t("ffffffffffffffffffff", 20);
+	uint256_t* c = new uint256_t("12345", 5);
+	PRINT("a " << *a);
+	PRINT("b " << *b);
+	PRINT("c " << *c);
+	PRINT("OPERATION");
+	*c = *a + *b;
+	PRINT("a " << *a);
+	PRINT("b " << *b);
+	PRINT("c " << *c);
+	PRINT("c(bin) ");
+	c->print_bin();
+	delete a, delete b, delete c;
 	return 0;
 }
